@@ -6,7 +6,7 @@ with open("README.md") as fp:
 
 
 setuptools.setup(
-    name="cdk-workshop",
+    name="stacks",
     version="0.0.1",
 
     description="A sample CDK Python app",
@@ -15,16 +15,22 @@ setuptools.setup(
 
     author="author",
 
-    package_dir={"": "cdk-workshop"},
-    packages=setuptools.find_packages(where="cdk-workshop"),
+    # package_dir={"": "cdk-workshop"},
+    # packages=setuptools.find_packages(where="stacks"),
 
     install_requires=[
-        "aws-cdk.core",
-        "aws-cdk.aws_iam",
-        "aws-cdk.aws_sqs",
-        "aws-cdk.aws_sns",
-        "aws-cdk.aws_sns_subscriptions",
-        "aws-cdk.aws_s3",
+        "aws-cdk.core==1.18.0",
+        "aws-cdk.aws_iam==1.18.0",
+        "aws-cdk.aws_sqs==1.18.0",
+        "aws-cdk.aws_sns==1.18.0",
+        "aws-cdk.aws_sns_subscriptions==1.18.0",
+        "aws-cdk.aws_s3==1.18.0",
+        "aws-cdk.aws_ecs_patterns==1.18.0",
+        "aws-cdk.aws-lambda==1.18.0",
+        "aws-cdk.aws_apigateway==1.18.0",
+        "aws-cdk.aws_dynamodb==1.18.0",
+        "aws-cdk.aws_transfer==1.18.0",
+        "cdk-dynamo-table-viewer",
     ],
 
     python_requires=">=3.6",

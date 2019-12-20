@@ -2,7 +2,9 @@ import unittest
 
 from aws_cdk import core
 
-from hello.hello_construct import HelloConstruct
+from stacks.workshop_stack import CdkWorkshopStack
+from stacks.fargate import MyFargateStack
+
 
 class TestCdkWorkshopStack(unittest.TestCase):
 
