@@ -27,6 +27,7 @@ setuptools.setup(
         "aws-cdk.aws_s3==1.18.0",
         "aws-cdk.aws_ecs_patterns==1.18.0",
         "aws-cdk.aws-lambda==1.18.0",
+        "aws-cdk.aws_codepipeline_actions==1.18.0",
         "aws-cdk.aws_apigateway==1.18.0",
         "aws-cdk.aws_dynamodb==1.18.0",
         "aws-cdk.aws_transfer==1.18.0",

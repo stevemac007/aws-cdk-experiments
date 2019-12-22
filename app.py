@@ -6,6 +6,7 @@ from aws_cdk import core
 from stacks.workshop_stack import CdkWorkshopStack
 from stacks.fargate import MyFargateStack
 from stacks.sftp import SFTPIntegrationStack
+from stacks.pipeline import PipelineStack
 
 app = core.App()
 
@@ -21,5 +22,6 @@ SFTPIntegrationStack(app, "sftp", env={
     'account': os.environ['CDK_DEFAULT_ACCOUNT'],
 })
 
+PipelineStack(app, "pipeline")
 
 app.synth()
