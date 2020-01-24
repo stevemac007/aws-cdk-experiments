@@ -2,6 +2,7 @@ from aws_cdk import (core, aws_codebuild as codebuild,
                      aws_codecommit as codecommit,
                      aws_codepipeline as codepipeline,
                      aws_codepipeline_actions as codepipeline_actions,
+                     aws_codedeploy as codedeploy,
                      aws_lambda as lambda_, aws_s3 as s3,
                      aws_ecr as ecr)
 
@@ -35,14 +36,15 @@ class PipelineStack(core.Stack):
                             version="0.2",
                             phases=dict(
                                 install=dict(
-                                    commands="npm install"),
+                                    commands="make init"),
                                 build=dict(commands=[
-                                    "npm run build",
-                                    "npm run cdk synth -- -o dist"])),
+                                    "make lint",
+                                    "make diff-test",
+                                    "make deploy-test"])),
                             artifacts={
-                                "base-directory": "dist",
+                                "base-directory": "cdk.out",
                                 "files": [
-                                    "LambdaStack.template.json"]},
+                                    "*.json"]},
                             environment=dict(buildImage=
                                 codebuild.LinuxBuildImage.UBUNTU_14_04_PYTHON_3_7_1))))
 
@@ -124,6 +126,18 @@ class PipelineStack(core.Stack):
         #                     extra_inputs=[lambda_build_output])])
         #         ]
         #     )
+
+
+        ecs_deploy = codedeploy.EcsApplication(self,
+                                               "ECSDemoApplication",
+                                               application_name="blart")
+
+        # codedeploy.EcsDeploymentGroup(self, )
+
+        codedeploy.EcsDeploymentGroup.from_ecs_deployment_group_attributes(pipeline,
+                                                                           'CodeDeployDeploymentGroup',
+                                                                           application=ecs_deploy,
+                                                                           deployment_group_name="blarrt")
 
 
         core.Tag.add(self, 'Owner', 'stevemac')

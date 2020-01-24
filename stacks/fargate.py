@@ -21,6 +21,7 @@ class MyFargateStack(core.Stack):
                                                                  cluster=cluster,            # Required
                                                                  cpu=512,                    # Default is 256
                                                                  desired_count=2,            # Default is 1
+
                                                                  task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                                                                      image=ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample")),
                                                                  memory_limit_mib=2048,      # Default is 512
@@ -34,4 +35,13 @@ class MyFargateStack(core.Stack):
                             zone=zone,
                             target=r53.RecordTarget.from_alias(target.LoadBalancerTarget(obj.load_balancer)))
 
+        core.CfnOutput(self,
+                       "ClusterName",
+                       value=obj.cluster.cluster_name)
+
+        core.CfnOutput(self,
+                       "LoadbalancerNamee",
+                       value=obj.load_balancer.load_balancer_full_name)
+
         core.Tag.add(self, 'Owner', 'stevemac')
+
