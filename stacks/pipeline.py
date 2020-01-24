@@ -3,6 +3,7 @@ from aws_cdk import (core, aws_codebuild as codebuild,
                      aws_codepipeline as codepipeline,
                      aws_codepipeline_actions as codepipeline_actions,
                      aws_codedeploy as codedeploy,
+                     aws_iam as iam,
                      aws_lambda as lambda_, aws_s3 as s3,
                      aws_ecr as ecr)
 
@@ -32,11 +33,16 @@ class PipelineStack(core.Stack):
 
         cdk_build = codebuild.PipelineProject(self, "CdkBuild",
                                               project_name="smac-cdk-example-build",
+                                              # timeout=Duration(15 min),
                         build_spec=codebuild.BuildSpec.from_object(dict(
                             version="0.2",
                             phases=dict(
                                 install=dict(
-                                    commands="make init"),
+                                    commands=[
+                                        "make init",
+                                        "make requirements"
+                                    ]
+                                ),
                                 build=dict(commands=[
                                     "make lint",
                                     "make diff-test",
@@ -48,6 +54,10 @@ class PipelineStack(core.Stack):
                             environment=dict(buildImage=
                                 codebuild.LinuxBuildImage.UBUNTU_14_04_PYTHON_3_7_1))))
 
+        cdk_build.add_to_role_policy(iam.PolicyStatement(
+                actions=["route53:ListHostedZonesByName"],
+                resources=["*"],
+        ))
 
         buildAction = codepipeline_actions.CodeBuildAction(action_name="Build",
                                                            input=sourceOutput,
@@ -55,89 +65,13 @@ class PipelineStack(core.Stack):
 
         pipeline = codepipeline.Pipeline(self,
                                          'Pipeline',
-                                         pipeline_name='smac-ecs-cfn-deploy',
+                                         pipeline_name='smac-cdk-example-pipeline',
                                          stages=[
                                              codepipeline.StageProps(stage_name="Build",
                                                                      actions=[sourceAction,
-                                                                              # dockerImageSourceAction
                                                                               ]),
                                              codepipeline.StageProps(stage_name="DeployDev",
                                                                      actions=[buildAction])
                                          ])
-
-        # lambda_build = codebuild.PipelineProject(self, 'LambdaBuild',
-        #                                          project_name="smac-cdk-example",
-        #                 build_spec=codebuild.BuildSpec.from_object(dict(
-        #                     version="0.2",
-        #                     phases=dict(
-        #                         install=dict(
-        #                             commands=[
-        #                                 "cd lambda",
-        #                                 "npm install"]),
-        #                         build=dict(
-        #                             commands="npm run build")),
-        #                     artifacts={
-        #                         "base-directory": "lambda",
-        #                         "files": [
-        #                             "index.js",
-        #                             "node_modules/**/*"]},
-        #                     environment=dict(buildImage=
-        #                         codebuild.LinuxBuildImage.UBUNTU_14_04_NODEJS_10_14_1))))
-        #
-        # source_output = codepipeline.Artifact()
-        # cdk_build_output = codepipeline.Artifact("CdkBuildOutput")
-        # lambda_build_output = codepipeline.Artifact("LambdaBuildOutput")
-        #
-        # lambda_location = lambda_build_output.s3_location
-        #
-        # codepipeline.Pipeline(self, "Pipeline",
-        #     stages=[
-        #         codepipeline.StageProps(stage_name="Source",
-        #             actions=[
-        #                 codepipeline_actions.CodeCommitSourceAction(
-        #                     action_name="CodeCommit_Source",
-        #                     repository=code,
-        #                     output=source_output)]),
-        #         codepipeline.StageProps(stage_name="Build",
-        #             actions=[
-        #                 codepipeline_actions.CodeBuildAction(
-        #                     action_name="Lambda_Build",
-        #                     project=lambda_build,
-        #                     input=source_output,
-        #                     outputs=[lambda_build_output]),
-        #                 codepipeline_actions.CodeBuildAction(
-        #                     action_name="CDK_Build",
-        #                     project=cdk_build,
-        #                     input=source_output,
-        #                     outputs=[cdk_build_output])]),
-        #         codepipeline.StageProps(stage_name="Deploy",
-        #             actions=[
-        #                 codepipeline_actions.CloudFormationCreateUpdateStackAction(
-        #                     action_name="Lambda_CFN_Deploy",
-        #                     template_path=cdk_build_output.at_path(
-        #                         "LambdaStack.template.json"),
-        #                     stack_name="LambdaDeploymentStack",
-        #                     admin_permissions=True,
-        #                     parameter_overrides=dict(
-        #                         lambda_code.assign(
-        #                             bucket_name=lambda_location.bucket_name,
-        #                             object_key=lambda_location.object_key,
-        #                             object_version=lambda_location.object_version)),
-        #                     extra_inputs=[lambda_build_output])])
-        #         ]
-        #     )
-
-
-        ecs_deploy = codedeploy.EcsApplication(self,
-                                               "ECSDemoApplication",
-                                               application_name="blart")
-
-        # codedeploy.EcsDeploymentGroup(self, )
-
-        codedeploy.EcsDeploymentGroup.from_ecs_deployment_group_attributes(pipeline,
-                                                                           'CodeDeployDeploymentGroup',
-                                                                           application=ecs_deploy,
-                                                                           deployment_group_name="blarrt")
-
 
         core.Tag.add(self, 'Owner', 'stevemac')
